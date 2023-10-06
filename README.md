@@ -1,2 +1,3 @@
 # Portfolio
-A brief portfolio of what I have done
+A brief portfolio of what I have done and can share
+

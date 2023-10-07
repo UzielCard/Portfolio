@@ -1,0 +1,967 @@
+---
+title: "Videogames Industry Report"
+author: "Uziel Cardelas"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+output: 
+  html_document:
+    theme: darkly
+    highlight: breezedark
+    number_sections: TRUE
+    toc: TRUE
+    toc_depth: 4
+    toc_float:
+      collapsed: TRUE
+      smooth_scroll: TRUE
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=FALSE}
+library(dplyr) #for data manipulation
+library(ggplot2) #for graphs and plots
+library(treemapify) # a complement to ggplot
+library(stringr) #string characters
+library(tidyr) #manipulate datasets
+library(visdat) #for visualizing missing data
+library(assertive) #assert functions
+library(forcats)  #Manipulate factors
+library(kableExtra)
+library(psych)
+library(ggpubr)
+```
+
+```{r, echo=FALSE}
+sales <- read.csv("SalesVideogames.csv")
+```
+# Abstract
+This reports analyzes the information presented in the data set `Sales Videogames` and its main objective is to show the process of data cleaning and present the main insights and recommendations for the industry to thrive in the years to come.
+
+![](https://cdn-res.keymedia.com/cms/images/ca/155/0319_637171637373959129.jpg)
+
+# Problem Setup
+## Introduction
+### Overview
+  Other than fun for children, youth and adults, video games have become one of the most profitable and commercially attractive industries of this decade. In 2017 alone, the global video game market exceeded $ 100 billion, a figure that marked a milestone in the history of this segment, registering a growth of more than 50% in five years. The market is led by video games for mobile devices (42%), followed by video games for consoles (31%) and for computers (27%), which include physical, downloadable and browser video games.
+
+<div>
+  <div class="col-md-4">
+  <img src="https://assets.nintendo.com/image/upload/c_pad,f_auto,h_490,q_auto,w_360/ncom/es_MX/games/switch/n/new-super-mario-bros-u-deluxe-switch/description-image?v=2022042123" alt="" width="250px" />
+  </div>
+</div>
+
+  Currently, video game companies around the world, in addition to attracting and entertaining the consumer, direct their strategies towards the development of comprehensive entertainment systems so that, in collaboration with other industries, they can monetize the interest of the traditional public and even the new consumer segments. In other words, the profits are generated not only by the purchase of the console and the video game, but also include mechanisms such as subscriptions fees of entertainment networks; selling tickets for special events, conventions or tournaments; complementary physical accessories; and integrated shopping and advertising, to name just a few.
+  
+  Recently, a student from Tecnologico de Monterrey was hired to clean, transform, merge, process, and analyze a dataset which allows them to create a platform to visualize which video games have been the best-selling in the last few years as well as other interesting exploratory and descriptive analysis. This tool will be offered to developer companies in order to identify user preferences and thus, be able to make decisions that open the opportunities for them building greater profitability for their business.
+
+  To develop this dataset, the student collected information that includes a video game dataset from 1977 to the end of the second decade of the 21st century. The variables included are: name of the videogame, the genre of the video game, the company that published it (publisher), the console where it is played, as well as the sales generated in different regions of the world by the video game on its launch date (in millions of units), a measure of consumer rating to the videogame, and whether the game won an award.
+
+  However, the content of the dataset is not cleaned and the information contains errors that could cause inappropriate decision-making for the end user of the platform. Therefore, the analyst must first clean, transform, merge, and pre-process the dataset in order to be able to analyze it then.
+
+### Research Process
+  To do the pertinent cleaning of the dataset we used RStudio, using a Markdown file set to HTML. The analysis and ploting was also done in the same R environment.
+  
+## Objectives
+  This project is divided into 2 big objectives.
+  
+* The first one is to clean the dataset presented so it becomes useful and we can preform a proper analysis. 
+* The second one is to use different statistical measures and graphic representations to perfom an analysis that descrives the overview of the video game sales behavior in the last 40 years. As pasr of this objective the following questionings must be solved:
+    + Average sales of video games in the last decades in North America, Europe, Japan and worldwide
+    + Year in which global video game sales were at its highest
+    + Most successful genre of all time and for each region
+    + Game console that has released the majority of video games
+    + Genre with the most video games
+    + Publisher who has distributed the majority of video games
+    + Most successful publisher by region and worldwide
+
+# Data
+## Data description
+  We used the dataset `SalesVideogames` to perform all the analysis. It contains 22 columns that can be summarized in information about the videogame and sales by region. The variables are:
+
+* __Information about the videogame:__ 
+  + _X:_ (Ordinal) This variable is just a ID for each name.
+  + _Rank:_ (Ordinal) This variable Ranks each videogame.
+  + _Name:_ (Charachter) The name of the videogame.
+  + _Platform:_ (Charachter) The game console that the game was published for. 
+  + _Publisher:_ (Charachter) The company that published each videogame.
+  + _Action:_ (Numeric) When a videogame is from the category Action, it shows the year it was published.
+  + _Adventure:_ (Numeric) When a videogame is from the category Adventure, it shows the year it was published.
+  + _Fighting:_ (Numeric) When a videogame is from the category Fighting, it shows the year it was published.
+  + _Misc:_ (Numeric) When a videogame is from the category Misc, it shows the year it was published.
+  + _Platform.1:_ (Numeric) When a videogame is from the category Ploatform, it shows the year it was published.
+  + _Puzzle:_ (Numeric) When a videogame is from the category Puzzle, it shows the year it was published.
+  + _Racing:_ (Numeric) When a videogame is from the category Racing, it shows the year it was published.
+  + _RolePlaying:_ (Numeric) When a videogame is from the category Role Playing, it shows the year it was published.
+  + _Shooter:_ (Numeric) When a videogame is from the category Shooters, it shows the year it was published.
+  + _Simulation:_ (Numeric) When a videogame is from the category Simulation, it shows the year it was published.
+  + _Sports:_ (Numeric) When a videogame is from the category Sports, it shows the year it was published.
+  + _Strategy:_ (Numeric) When a videogame is from the category Strategy, it shows the year it was published.
+
+* __Sales:__
+  + _NA_Sales:_ (Numeric) This variable shows the value of sales for each videogame in the region of North America.
+  + _EU_Sales:_ (Numeric) This variable shows the value of sales for each videogame in the region of Europe.
+  + _JP_Sales:_ (Numeric) This variable shows the value of sales for each videogame in the region of Japan.
+  + _Other_Sales:_ (Numeric) This variable shows the value of sales for each videogame in Other regions.
+  + _Global_Sales:_ (Numeric) This variable shows the value of sales for each videogame Global.
+
+## Data cleaning conducted
+  As mentioned before, the dataset that was used for this job was untidy and had various errors that made it inappropriate for its use. So I could be able to get real insight, and as one of the objectives, a data cleaning process was done.
+  
+### Gathering results {.tabset}
+  The first step done was to join all the categories columns (from `Action` to `Strategy`) into 1 that showed them all and created a column with the value fo the years. This action was performed with the function `gather()`. In the same me step, with the use of `%>% (pipes)`, I replaced all the `Platform.1` for `Platform`. This is because as it was previously a column and so there were no repeated names this has a name change, but as it becomes a value of a variable we can perform the change. Here I was also able to remove all the missing values from the variable year, leaving only the actual videogames released. Once created the new columns, I made sure that `category` was a factor and `year` an integer with the functions `as.factor` and `as.integer` respectively.
+
+#### Before
+```{r,  include=FALSE}
+salesH1 <- head(sales)
+```
+
+```{r, echo=FALSE}
+knitr::kable(salesH1, 
+             col.names = c("X","Rank","Name","Platform","Publisher","NA_Sales","EU_Sales","JP_Sales","Other_Sales","Global_Sales","Action","Adventure","Fighting","Misc","Platform.1","Puzzle","Racing","RolePlaying","Shooter","Simulation","Sports","Strategy"),
+             align = "c", 
+             caption = "Table 1.1 Structure of the Original Dataset")
+```
+
+#### After
+```{r,  include=FALSE}
+sales <- sales %>% 
+  gather(key="category", value="year", 11:22) %>% 
+  mutate(category = str_replace_all(category, "Platform.1", "Platform")) %>% 
+  filter(!is.na(year)) 
+
+sales$category <- as.factor(sales$category)
+sales$year <- as.integer(sales$year)
+```
+```{r,  include=FALSE}
+salesH2 <- head(sales)
+```
+
+```{r,echo=FALSE}
+knitr::kable(salesH2, 
+             col.names = c("X","Rank","Name","Platform","Publisher","NA_Sales","EU_Sales","JP_Sales","Other_Sales","Global_Sales","category","year"),
+             align =  "c", 
+             caption = "Table 1.2 Structure of the New Dataset")
+```
+### NA Removal
+
+  Following the data cleaning, I had to check the remaining numeric variables, that where all the sales. The first part here wass to find the missing values using the function `is.na` with all 5 variables. In this particular case, only the regions had 4 missing values each. to replace them, I used the mean for each one and change all of them with an `ifelse()` statement.
+  
+
+```{r, include=FALSE}
+# Replacing NA for Mean
+sales <- sales %>% 
+  mutate(NA_Sales = ifelse(is.na(NA_Sales),0.2643,NA_Sales)) %>% 
+  mutate(EU_Sales = ifelse(is.na(EU_Sales),0.1464,EU_Sales)) %>% 
+  mutate(JP_Sales = ifelse(is.na(JP_Sales),0.07778,JP_Sales)) %>% 
+  mutate(Other_Sales = ifelse(is.na(Other_Sales),0.04803,Other_Sales))
+```
+
+### Removing outliers {.tabset}
+
+  The variable `year`had some outliers cause by a fail in the capturing. To find them first I made a point graph that clearly showed a pattern and those points that were not even close. Also a table showing the year and the name was created to identify the specific outliers and to be able to investigate the actual year that videogame was released. With these identified, using the `str_replace_all()` function, I was able to replace all those outliers. Finally, the same plot was made, but now it had no more outliers
+
+#### With Outliers
+```{r, echo=FALSE, fig.align='center', fig.cap="Plot 1.1 Year Plot with Outliers"}
+# Visualizing Outliers
+sales %>% 
+  ggplot(aes(x=X, y=year)) +
+  geom_point(color="white")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0),
+        panel.grid.minor = element_line(size = 0.1,linetype = "solid", color="white"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"))
+```
+
+```{r, include=FALSE}
+# Changing values
+sales$year <- as.character(sales$year)
+sales <- sales %>% 
+  mutate(year = str_replace_all(year,"1797","1997")) %>% 
+  mutate(year = str_replace_all(year,"1894","1984")) %>% 
+  mutate(year = str_replace_all(year,"2103","2013")) %>% 
+  mutate(year = str_replace_all(year,"2102","2012")) %>% 
+  mutate(year = str_replace_all(year,"2130","2013")) %>% 
+  mutate(year = str_replace_all(year,"2101","2011")) %>% 
+  mutate(year = str_replace_all(year,"2200","2009")) %>% 
+  mutate(year = str_replace_all(year,"2105","2015")) 
+sales$year <- as.integer(sales$year)
+```
+
+#### Without Outliers
+```{r, echo=FALSE, fig.align='center', fig.cap="Plot 1.1 Year Plot with Outliers"}
+# Checking
+sales %>% 
+  ggplot(aes(x=X, y=year)) +
+  geom_point(color="white")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0),
+        panel.grid.minor = element_line(size = 0.1,linetype = "solid", color="white"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"))
+```
+### Cleaning characters
+  Next, I decided to use the functions `str_trim()` and `str_to_lower()` to solve som minor inconsistencies on our categorical variables. In this part I also replaced all xbox to xb in the platform column because they were refering to the same console.  
+
+```{r, include=FALSE}
+sales <- sales %>%
+  mutate(Name = str_trim(Name)) %>% 
+  mutate(Name = str_to_lower(Name)) %>% 
+  mutate(Platform = str_trim(Platform)) %>% 
+  mutate(Platform = str_to_lower(Platform)) %>% 
+  mutate(Publisher = str_trim(Publisher)) %>% 
+  mutate(Publisher = str_to_lower(Publisher)) %>% 
+  mutate(Platform = str_replace_all(Platform, "xbox", "xb"))
+```
+
+### Creating Datasets {.tabset}
+  Finally, I created 2 new datasets using `gather()` to group all regions into one variable. Both datasets are similar and have only one difference, the first one gathers only the regions but the second one also considered `Global_Sales`. This step was done to be more useful for the analitics process to perform.
+
+#### Sales2
+```{r,include=FALSE}
+sales2 <- sales %>% 
+  gather(key="Region", value="Sales", 6:9) 
+salesH3 <- head(sales2)
+```
+```{r, echo=FALSE}
+knitr::kable(salesH3, 
+             col.names = c("X","Rank","Name","Platform","Publisher","Global_Sales","category","year","Region","Sales"),
+             align =  "c", 
+             caption = "Table 2.1 Structure of the New Dataset")
+```
+
+
+#### Sales3
+```{r, include=FALSE}
+sales3 <- sales %>% 
+  gather(key="Region", value="Sales", 6:10) 
+salesH4 <- head(sales3)
+```
+```{r, echo=FALSE}
+knitr::kable(salesH4, 
+             col.names = c("X","Rank","Name","Platform","Publisher","category","year","Region","Sales"),
+             align =  "c", 
+             caption = "Table 2.2 Structure of the New Dataset")
+```
+
+# Analysis and Insights
+  As part of our second objective, an analysis must be done to be able to answer the initial questions. 
+  
+## Statistical/Analytical techniques employed
+All the analysis was performed on R, being able to get some statistical values such as the mean tosolve somo of the problems we had. To explain in a easier way the data, some tables and plots were used.  
+
+## Results
+In this section you will find the solving of the quiestioning proposed ans some insights found through them.
+
+### Average sales of video games in the last decades in North America, Europe, Japan and worldwide
+
+```{r, include=FALSE}
+graph1 <- sales3 %>% 
+  group_by(year,Region) %>% 
+  summarise(avg_sales=mean(Sales)) %>% 
+  arrange(-avg_sales)
+
+graph1_1 <- sales3 %>% 
+  group_by(Region) %>% 
+  summarise(avg_sales=mean(Sales)) %>% 
+  arrange(-avg_sales)
+```
+
+<div style= "float:left">
+```{r pressure, echo=FALSE, fig.dim = c(6.5, 5)}
+ggplot(graph1, aes(x=year, y=avg_sales, color=Region)) +
+  geom_line()+
+  labs(x="Year", y="Average Sales", title="Average sales by year by region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0.25, linetype = "solid",color = "white"),
+        panel.grid.minor = element_line(size = 0.12,linetype = "solid", color="white"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+```
+</div>
+
+```{r, echo=FALSE}
+graph1_1 %>%
+  kbl() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "float_right")
+```
+
+The first behavior we are able to observe here is that the average sales of videogames was at is peak before the 90's. This is telling us that the most succesful decade, taking into account only the average of the sales, was the 80's. Here we can also see that for most of the years, North America has been the most succesful region, being surpased clearly only by Japan. Basically, until 1996 they were the top contenders on this aspect, but as the average has decreased to our days, the top regions are North america and Europe. Now, talking about the all time mean sales, both North America and Europe, represent close to a 77% of the Global sales.
+
+### Year in which global video game sales were at its highest
+```{r, include=FALSE}
+graph2 <- sales %>% 
+  group_by(year) %>% 
+  summarise(Global=sum(Global_Sales)) %>% 
+  arrange(-Global)
+
+graph2_1 <- sales %>%
+  group_by(year) %>% 
+  rename(Year=year) %>% 
+  summarise(Global=sum(Global_Sales)) %>% 
+  top_n(5) %>% 
+  arrange(-Global)
+```
+
+```{r, echo=FALSE, fig.dim = c(8,5)}
+ggplot(graph2, aes(x=year, y=Global))+
+  geom_line(color="white")+
+  geom_point(color="white")+
+  ylim(c(0,750))+
+  labs(x="Year", y="Global Sales", title="Global Sales by year")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0.2, linetype = "solid",color = "white"),
+        panel.grid.minor = element_line(size = 0.1,linetype = "solid", color="white"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"))
+```
+```{r, echo=FALSE}
+graph2_1 %>%
+  kbl() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "float_left")
+```
+<br>With this graph and table we can see in a very clear way, how videogames sales behave through the years. According to the data, the year when the global sales where at its highest was 2008 but 2009 got really close. The greater sales were done from 2005 to 2011. 
+<br>In general we can se that from the first years until 2008, the total Global sales follows a growing pattern that get to its peak and starts plummeting until 2017.
+<br>
+Another interesting finding in here was that the amount of sales follows a peculiar growth pattern. There is a curve formed by between 3 to 6 years in which there are ups and downs. It grows for a few tears, reach a peak and goes down again. This cycle repeats through out the hole graph, but we never get to see the behavior after the last decrease in sales in 2017.
+
+### Most successful genre of all time and for each region {.tabset}
+```{r, include=FALSE}
+graph3 <- sales2 %>% 
+  group_by(year,Region,category) %>% 
+  summarise(SalesxRegion = sum(Sales))
+
+graph3_1 <- sales2 %>% 
+  group_by(Region,category) %>% 
+  summarise(SalesxRegion = sum(Sales))
+
+graph3_2 <- sales2 %>% 
+  group_by(Region,category) %>% 
+  summarise(SalesxRegion = sum(Sales))%>% 
+  top_n(1) %>% 
+  arrange(desc(SalesxRegion))
+
+graph3_3 <- sales3 %>% 
+  filter(Region=="Global_Sales") %>% 
+  group_by(year,category) %>% 
+  summarise(TotalSales = sum(Sales))
+```
+
+#### By Year
+```{r, echo=FALSE, fig.dim=c(4.3,10)}
+par(mar = c(4, 4, .2, .1))
+ggplot(graph3, aes(x=year, y=SalesxRegion, color=category))+
+  geom_line(show.legend = FALSE)+
+  labs(x= "Year",y= "Sales", title="Sales by Region")+
+  facet_wrap("Region", scales = "free_y", ncol=1)+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0.05, linetype = "solid",color = "white"),
+        panel.grid.minor = element_line(size = 0.025,linetype = "solid", color="white"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"),
+	      axis.ticks.x = element_blank(),
+	      axis.ticks.y = element_blank())
+
+ggplot(graph3_3, aes(x=year, y=TotalSales, color=category))+
+  geom_line(show.legend = FALSE)+
+  labs(x= "Year",y= "", title="Global Sales by category")+
+  facet_wrap("category", scales = "free_y", ncol=2)+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0.05, linetype = "solid",color = "white"),
+        panel.grid.minor = element_line(size = 0.025,linetype = "solid", color="white"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"),
+	      axis.ticks.x = element_blank(),
+	      axis.ticks.y = element_blank())
+
+```
+The first insight found is that before the 90´s, the best selling videogames were fron the categories `Platform` and `Puzzle`. For the next decades, we can observe that in general the sales of all the regions have a similar behavior, with the exeption of Japan. For all The top categories from 1990 to 2017 were `Action`, `Sports`, `Misc` and `Shooters` in that order, but for japan it is more like `Role Playing`, `Misc`, and `Action`. Now, when we compare that to the global sales by category, we can see that the global pattern is the same as the one from the 3 cattegories that are not Japan. 
+
+
+#### All time
+```{r, echo=FALSE}
+ggplot(graph3_1,aes(area=SalesxRegion, fill=Region, label=category, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "#222222",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+```
+```{r, echo=FALSE}
+graph3_2 %>%
+  kbl() %>%
+  kable_styling(bootstrap_options = "striped", full_width = F, position = "float_left")
+```
+
+Visually, the first thing that shows up is that the region of North America represents close to the half of the total sales. This graph confirms the asumpyions made by analyzing the most successful categories by year. For North America, Europe and Other regions the top selling genre was Action and the runner-up was Sports. In the case of Japan Role Playing got the first place followed by Action.
+<br> A very interesting detail is that for North America, Europe and Other shooters videogames were in the Top 3, but for Japan, Shooters are the least succesfull videogames category.
+
+
+### Game console that has released the majority of video games
+```{r, echo=FALSE, out.width="120%"}
+ggplot(sales, aes(x=Platform)) +
+  geom_bar(fill="green") +
+  labs(x="Console", y="#Videogames Released", title="Videogames released by platform")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0),
+        panel.grid.minor = element_line(size = 0.1,linetype = "solid", color="white"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"))
+```
+<div>
+  <div class="col-md-6">
+  <img src="https://wiki.batocera.org/lib/exe/fetch.php?tok=032a5c&media=https%3A%2F%2Fraw.githubusercontent.com%2Ffabricecaruso%2Fes-theme-carbon%2Fmaster%2Fart%2Fconsoles%2Fnds.png" alt="" width="500px" height="350px"/>
+  <p>The console that has released more videogames is the Nintendo DS with a total of 2163</p>
+  </div>
+  <div class="col-md-6">
+  <img src="https://static.wikia.nocookie.net/deadoralive/images/3/39/PS2-Versions.png/revision/latest?cb=20110923082435" alt="" width="500px" height="350px"/>
+  <p>The PlayStation2 released 2161 videogames being the second place only 2 releases behind</p>
+  </div>
+</div>
+
+<br>
+
+### Genre with the most video games
+```{r, echo=FALSE, out.width="120%"}
+ggplot(sales, aes(x=category, fill=category)) +
+  geom_bar() +
+  labs(x="Category", y="#Videogames Released", title="Videogames released by platform")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0),
+        panel.grid.minor = element_line(size = 0.1,linetype = "solid", color="white"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"),
+        axis.text.x = element_blank(),
+	      axis.ticks.x = element_blank(),
+	      axis.ticks.y = element_blank(),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+
+```
+The category that releases the most videogames is Action, followed by Sports and in 3rd place is Misc.
+
+
+### Publisher who has distributed the majority of video games
+```{r, include=FALSE}
+graph4 <- sales %>% 
+  group_by(Publisher) %>% 
+  count() %>%
+  filter(n>400) %>% 
+  arrange(-n)
+```
+
+```{r, echo=FALSE, out.width="120%"}
+ggplot(graph4, aes(x=Publisher, y=n, fill=Publisher))+
+  geom_bar(stat = "identity")+
+  labs(x="Publisher", y="#Videogames Released", title="Videogames released by publisher")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        panel.background = element_rect(fill="#222222"),
+        panel.grid.major = element_line(size = 0),
+        panel.grid.minor = element_line(size = 0.1,linetype = "solid", color="white"),
+        plot.title = element_text(color="white"),
+        axis.title.x = element_text(color="white"),
+        axis.title.y = element_text(color="white"),
+        axis.text.x = element_blank(),
+	      axis.ticks.x = element_blank(),
+	      axis.ticks.y = element_blank(),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+```
+<div>
+  <div class="col-md-2">
+  <img src="https://media.contentapi.ea.com/content/dam/eacom/es-es/common/october-ea-ring.png" alt="" width="110px" height="110px"/>
+  <p align=center>Top 1</p>
+  </div>
+  <div class="col-md-4">
+  <img src="https://imgs.callofduty.com/content/dam/atvi/global/studio-logos/activision-footer.png" alt="" width="300px" height="110px"/>
+  <p align=center>Top 2</p>
+  </div>
+  <div class="col-md-2">
+  <img src="https://static.wikia.nocookie.net/espokemon/images/9/9e/Bandai_Namco_Games_Logo.png/revision/latest?cb=20150822004448" alt="" width="110px" height="110px"/>
+  <p align=center>Top 3</p>
+  </div>
+  <div class="col-md-2">
+  <img src="https://ubistatic2-a.akamaihd.net/legal_portal/prod/images_new/ubilogo.png" alt="" width="110px" height="110px"/>
+  <p align=center>Top 4</p>
+  </div>
+  <div class="col-md-2">
+  <img src="https://i.pinimg.com/originals/35/5c/41/355c41387b0d5144ec039a3bbcd5e814.png" alt="" width="110px" height="110px"/>
+  <p align=center>Top 5</p>
+  </div>
+</div>
+<br> 
+
+### Most successful publisher by region and worldwide
+```{r, include=FALSE}
+graph5 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(SalesxRegion=sum(Sales)) %>% 
+  top_n(1) %>% 
+  arrange(-SalesxRegion)
+
+graph5_1 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(SalesxRegion=sum(Sales)) %>% 
+  arrange(-SalesxRegion)
+
+graph5_2 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(SalesxRegion=sum(Sales)) %>% 
+  top_n(10) %>% 
+  arrange(-SalesxRegion)
+
+```
+
+```{r, echo=FALSE, out.width="50%"}
+par(mar = c(4, 4, .2, .1))
+ggplot(graph5_1,aes(area=SalesxRegion, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+
+ggplot(graph5_2,aes(area=SalesxRegion, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  scale_fill_brewer(palette = "Greens")+
+  ggtitle("Most successful genre of all time for each region (Top10)")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+```
+```{r, echo=FALSE}
+graph5 %>%
+  kbl() %>%
+  kable_styling(bootstrap_options = "striped")
+```
+
+We can appreciate that for Global sales the most successful publisher is `Nintendo`, and it remains like this for all the regions except from others were `EA` wins. This surprises because Nintendo is not the company that released the more videogames, but is the number 7.
+
+### Total Sales vs Total Videogames published
+```{r, include=FALSE}
+graph6 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(VGReleased = n(), SalesxRegion = sum(Sales)) %>% 
+  mutate(SalesbyReleases = SalesxRegion/VGReleased) %>% 
+  arrange(-SalesbyReleases)
+
+graph6_1 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(VGReleased = n(), SalesxRegion = sum(Sales)) %>% 
+  mutate(SalesbyReleases = SalesxRegion/VGReleased) %>% 
+  top_n(1) %>% 
+  arrange(-SalesbyReleases)
+
+graph6_2 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(VGReleased = n(), SalesxRegion = sum(Sales)) %>% 
+  mutate(SalesbyReleases = SalesxRegion/VGReleased) %>% 
+  top_n(10) %>% 
+  arrange(-SalesbyReleases)
+```
+
+```{r, echo=FALSE, out.width="50%"}
+par(mar = c(4, 4, .2, .1))
+ggplot(graph6,aes(area=SalesbyReleases, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+
+ggplot(graph6_2,aes(area=SalesbyReleases, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap(show.legend = FALSE)+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"))
+```
+The main insight that we get from this visualization is that succes may not only be measured By the amount of videogames published or the total sales. There are some companies that released even only 1 game, but when getting the relation it holds against the sales it got, they got to the top. The surprise here is that Electronic Arts, which is the company that releases the most videogames, is not even in the top 10. In the case of nintendo that have the most sales, it apears in the top bot it is not the best one. In general the best is palcom.
+
+## Conclusions and Business Recommendations
+The data studied gave us some really important insights. 
+
+* The fist thing to take into consideration is that Nintendo have a great strategy, because the win by having a lot of consoles and they release multiple games for them. This helps them to be in the top spot of sales in nearly every region. More companies can adopt this strategy and diversify their incomes. This can also create more loyal costumer throughout the years, without the need to be the ones that releases the most games.
+* The success of a genre change by region
+    + North America, Europe, and Other have a similar behavior
+      - The way to get a best seller is with Action, Sports or Shooters
+      - Here the region with the most competitors is North Amética, but also is the one where more money is moved.
+    + For Japan the main genre is Role Play and Action or Sports ar still good options, but Shooters are a no go
+
+# End Matter
+## Appendices
+### Previous Code
+#### Libraries
+```{r,eval = FALSE}
+library(dplyr) #for data manipulation
+library(ggplot2) #for graphs and plots
+library(treemapify) # a complement to ggplot
+library(stringr) #string characters
+library(tidyr) #manipulate datasets
+library(visdat) #for visualizing missing data
+library(assertive) #assert functions
+library(forcats)  #Manipulate factors
+```
+#### Loading the Dataset
+```{r,eval = FALSE}
+sales <- read.csv("SalesVideogames.csv")
+glimpse(sales)
+```
+
+### The code used to clean the dataset
+#### Creating Categories and Year
+```{r,eval = FALSE}
+sales <- sales %>% 
+  gather(key="category", value="year", 11:22) %>% 
+  mutate(category = str_replace_all(category, "Platform.1", "Platform")) %>% 
+  filter(!is.na(year))
+sales$category <- as.factor(sales$category)
+sales$year <- as.integer(sales$year)
+head(sales)
+```
+
+#### Removing NA on sales
+```{r,eval = FALSE}
+# Looking for NA
+sum(is.na(sales$NA_Sales))
+sum(is.na(sales$EU_Sales))
+sum(is.na(sales$JP_Sales))
+sum(is.na(sales$Other_Sales))
+sum(is.na(sales$Global_Sales))
+
+# Summary of the dataset
+summary(sales$NA_Sales)
+summary(sales$EU_Sales)
+summary(sales$JP_Sales)
+summary(sales$Other_Sales)
+
+# Replacing NA for Mean
+sales <- sales %>% 
+  mutate(NA_Sales = ifelse(is.na(NA_Sales),0.2643,NA_Sales)) %>% 
+  mutate(EU_Sales = ifelse(is.na(EU_Sales),0.1464,EU_Sales)) %>% 
+  mutate(JP_Sales = ifelse(is.na(JP_Sales),0.07778,JP_Sales)) %>% 
+  mutate(Other_Sales = ifelse(is.na(Other_Sales),0.04803,Other_Sales))
+
+# Confirmation
+sum(is.na(sales$NA_Sales))
+sum(is.na(sales$EU_Sales))
+sum(is.na(sales$JP_Sales))
+sum(is.na(sales$Other_Sales))
+```
+
+#### Remove outliers
+```{r,eval = FALSE}
+# Visualizing Outliers
+sales %>% 
+  ggplot(aes(x=X, y=year)) +
+  geom_point()
+
+# Changing values
+sales$year <- as.character(sales$year)
+sales <- sales %>% 
+  mutate(year = str_replace_all(year,"1797","1997")) %>% 
+  mutate(year = str_replace_all(year,"1894","1984")) %>% 
+  mutate(year = str_replace_all(year,"2103","2013")) %>% 
+  mutate(year = str_replace_all(year,"2102","2012")) %>% 
+  mutate(year = str_replace_all(year,"2130","2013")) %>% 
+  mutate(year = str_replace_all(year,"2101","2011")) %>% 
+  mutate(year = str_replace_all(year,"2200","2009")) %>% 
+  mutate(year = str_replace_all(year,"2105","2015")) 
+sales$year <- as.integer(sales$year)
+
+# Checking
+sales %>% 
+  ggplot(aes(x=X, y=year)) +
+  geom_point()
+```
+
+#### Correcting categorical variables
+```{r,eval = FALSE}
+sales <- sales %>%
+  mutate(Name = str_trim(Name)) %>% 
+  mutate(Name = str_to_lower(Name)) %>% 
+  mutate(Platform = str_trim(Platform)) %>% 
+  mutate(Platform = str_to_lower(Platform)) %>% 
+  mutate(Publisher = str_trim(Publisher)) %>% 
+  mutate(Publisher = str_to_lower(Publisher)) %>% 
+  mutate(Platform = str_replace_all(Platform, "xbox", "xb"))
+```
+
+#### Creating new datasets for future analysis
+```{r,eval = FALSE}
+sales2 <- sales %>% 
+  gather(key="Region", value="Sales", 6:9) 
+sales2
+
+sales3 <- sales %>% 
+  gather(key="Region", value="Sales", 6:10) 
+sales3
+```
+
+### Code use to creat the analysis
+#### Average sales of video games in the last decades in North America, Europe, Japan and worldwide
+```{r,eval = FALSE}
+graph1 <- sales3 %>% 
+  group_by(year,Region) %>% 
+  summarise(avg_sales=mean(Sales)) %>% 
+  arrange(-avg_sales)
+graph1
+
+graph1_1 <- sales3 %>% 
+  group_by(Region) %>% 
+  summarise(avg_sales=mean(Sales)) %>% 
+  arrange(-avg_sales)
+graph1_1
+
+ggplot(graph1, aes(x=year, y=avg_sales, color=Region)) +
+  geom_line()+
+  labs(x="Year", y="Average Sales", title="Average sales by year by region")+
+  theme_minimal()
+```
+
+#### Year in which global video game sales were at its highest
+```{r,eval = FALSE}
+graph2 <- sales %>% 
+  select(year, NA_Sales,EU_Sales, JP_Sales, Other_Sales, Global_Sales) %>% 
+  group_by(year) %>% 
+  summarise(Global=sum(Global_Sales)) %>% 
+  arrange(-Global)
+graph2
+
+ggplot(graph2, aes(x=year, y=Global))+
+  geom_line()+
+  geom_point()+
+  ylim(c(0,750))+
+  labs(x="Year", y="Global Sales", title="Global Sales by year")+
+  theme_light()
+```
+
+#### Most successful genre of all time and for each region
+```{r,eval = FALSE}
+graph3 <- sales2 %>% 
+  group_by(year,Region,category) %>% 
+  summarise(SalesxRegion = sum(Sales))
+graph3
+
+graph3_1 <- sales2 %>% 
+  group_by(Region,category) %>% 
+  summarise(SalesxRegion = sum(Sales))
+graph3_1
+
+graph3_2 <- sales2 %>% 
+  group_by(Region,category) %>% 
+  summarise(SalesxRegion = sum(Sales))%>% 
+  top_n(1)
+graph3_2
+
+ggplot(graph3, aes(x=category, y=SalesxRegion, fill=category))+
+  geom_bar(stat = "identity")+
+  facet_wrap("Region", scales = "free_y")+
+  theme(axis.text.x = element_blank(),
+	        axis.ticks.x = element_blank(),
+	        axis.text.y = element_blank(),
+	        axis.ticks.y = element_blank())+
+  labs(x="", y="Sales", title="Sales by Genre")
+
+ggplot(graph3, aes(x=year, y=SalesxRegion, color=category))+
+  geom_line()+
+  facet_wrap("Region", scales = "free_y")+
+  theme(panel.background = element_rect(fill="white", color = "white"),
+        panel.grid.major = element_line(size = 0.25, linetype = "solid",color = "lightgrey"),
+        panel.grid.minor = element_line(size = 0.12,linetype = "solid", color="lightgrey"), 
+        plot.background = element_rect(fill = "lightgreen"),
+        axis.text.x = element_blank(),
+	      axis.ticks.x = element_blank(),
+	      axis.ticks.y = element_blank())
+
+ggplot(graph3_1,aes(area=SalesxRegion, fill=Region, label=category, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")
+
+```
+
+
+#### Game console that has released the majority of video games
+```{r,eval = FALSE}
+sales %>% 
+  count(Platform) %>% 
+  arrange(-n)
+
+ggplot(sales, aes(x=Platform)) +
+  geom_bar(fill="lightblue") +
+  labs(x="Console", y="#Videogames Released", title="Videogames released by platform")+
+  theme_bw()
+```
+
+#### Genre with the most video games
+```{r,eval = FALSE}
+ggplot(sales, aes(x=category, fill=category)) +
+  geom_bar() +
+  labs(x="Category", y="#Videogames Released", title="Videogames released by platform")+
+  theme_classic()+
+  theme(axis.text.x = element_blank(),
+	        axis.ticks.x = element_blank(),
+	        axis.text.y = element_blank(),
+	        axis.ticks.y = element_blank())
+```
+
+#### Publisher who has distributed the majority of video games
+```{r,eval = FALSE}
+graph4 <- sales %>% 
+  group_by(Publisher) %>% 
+  count() %>%
+  filter(n>400) %>% 
+  arrange(-n)
+graph4
+
+ggplot(graph4, aes(x=Publisher, y=n, fill=Publisher))+
+  geom_bar(stat = "identity")+
+  labs(x="Publisher", y="#Videogames Released", title="Videogames released by publisher")+
+  theme_linedraw()+
+  theme(axis.text.x = element_blank(),
+	        axis.ticks.x = element_blank(),
+	        axis.text.y = element_blank(),
+	        axis.ticks.y = element_blank())
+```
+
+
+#### Most successful publisher by region and worldwide
+```{r,eval = FALSE}
+graph5 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(SalesxRegion=sum(Sales)) %>% 
+  top_n(1) %>% 
+  arrange(-SalesxRegion)
+graph5
+
+graph5_1 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(SalesxRegion=sum(Sales)) 
+graph5_1
+
+ggplot(graph5_1,aes(area=SalesxRegion, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  scale_fill_brewer(palette = "Greens")
+
+```
+
+#### Total Sales vs Total Videogames published
+```{r, eval=FALSE}
+graph6 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(VGReleased = n(), SalesxRegion = sum(Sales)) %>% 
+  mutate(SalesbyReleases = SalesxRegion/VGReleased) %>% 
+  arrange(-SalesbyReleases)
+
+graph6_1 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(VGReleased = n(), SalesxRegion = sum(Sales)) %>% 
+  mutate(SalesbyReleases = SalesxRegion/VGReleased) %>% 
+  top_n(1) %>% 
+  arrange(-SalesbyReleases)
+graph6_1
+
+graph6_2 <- sales3 %>% 
+  group_by(Region,Publisher) %>% 
+  summarise(VGReleased = n(), SalesxRegion = sum(Sales)) %>% 
+  mutate(SalesbyReleases = SalesxRegion/VGReleased) %>% 
+  top_n(10) %>% 
+  arrange(-SalesbyReleases)
+graph6_2
+
+ggplot(graph6,aes(area=SalesbyReleases, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap()+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"),
+        legend.title = element_text(color="white"),
+        legend.text = element_text(color="white"))
+
+ggplot(graph6_2,aes(area=SalesbyReleases, fill=Region, label=Publisher, subgroup=Region))+
+  geom_treemap(show.legend = FALSE)+
+  geom_treemap_text(colour = "black",
+                    place = "centre",
+                    size = 15)+
+  ggtitle("Most successful genre of all time for each region")+
+  theme(plot.background = element_rect(fill = "#222222",color = "#222222"),
+        legend.background = element_rect(fill = "#222222",color = "#222222"),
+        plot.title = element_text(color="white"))
+```
+
+## Reference list
+
+* Coder, R. (2021). Treemaps en ggplot2 con treemapify. [R] https://r-charts.com/es/parte-todo/treemapify/
+* RLT (2020). Facet_wrap. [R] https://raymondltremblay.github.io/ANALITICA/G10_Facet_wrap.html
+* Zhu, H. (2021). Create Awesome HTML Table with knitr::kable and kableExtra. [R] https://cran.r-project.org/web/packages/kableExtra/vignettes/awesome_table_in_html.html
+
+
+
+
+
+
+
+
+
+
+
+
+
+
